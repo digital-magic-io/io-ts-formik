@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "lib": ["dom", "es6", "esnext"],
+    "allowJs": false,
+    "checkJs": false,
+    "declaration": true,
+    "sourceMap": false,
+    "outDir": "lib",
+    "strict": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "stripInternal": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["./src", "./test"]
+}
