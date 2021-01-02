@@ -1,7 +1,7 @@
 {
-  "name": "@digital-magic/ts-template",
+  "name": "@digital-magic/io-ts-formik",
   "version": "1.0.1",
-  "description": "Template for Typescript based projects",
+  "description": "A bridge between io-ts codecs and Formik library that uses a codec as validation rules to build validator instance for Formik form",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "sideEffects": false,
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/digital-magic-io/ts-template.git"
+    "url": "git+https://github.com/digital-magic-io/io-ts-formik.git"
   },
   "files": [
     "lib/",
@@ -30,24 +30,38 @@
   "author": "Jevgeni Goloborodko <jevgeni@digital-magic.io>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/digital-magic-io/ts-template/issues"
+    "url": "https://github.com/digital-magic-io/io-ts-formik/issues"
   },
-  "homepage": "https://github.com/digital-magic-io/ts-template#readme",
+  "homepage": "https://github.com/digital-magic-io/io-ts-formik#readme",
   "keywords": [
     "typescript",
-    "template"
+    "io-ts",
+    "formik",
+    "validation"
   ],
   "tags": [
     "typescript",
-    "template"
+    "io-ts",
+    "formik",
+    "validation"
   ],
   "devDependencies": {
     "@babel/plugin-proposal-optional-chaining": "^7.11.0",
+    "@digital-magic/fp-ts-extensions": "^1.0.11",
+    "@digital-magic/io-ts-extensions": "^1.0.2",
+    "@digital-magic/ts-common-utils": "^1.0.13",
     "@types/jest": "^26.0.13",
     "@types/node": "^11.15.24",
     "@types/prettier": "^2.1.1",
+    "formik": "^2.1.4",
+    "fp-ts": "^2.8.3",
     "husky": "^4.3.0",
+    "io-ts": "^2.2.4",
+    "io-ts-types": "^0.5.7",
     "jest": "^26.4.2",
+    "moment": "^2.29.1",
+    "monocle-ts": "^2.2.0",
+    "newtype-ts": "^0.3.4",
     "prettier": "^2.1.1",
     "pretty-quick": "^3.0.2",
     "rimraf": "^3.0.2",
@@ -59,6 +73,17 @@
     "typescript": "^4.0.2"
   },
   "dependencies": {},
+  "peerDependencies": {
+    "@digital-magic/fp-ts-extensions": ">= 1.0.11",
+    "@digital-magic/ts-common-utils": ">= 1.0.13",
+    "@digital-magic/io-ts-extensions": ">= 1.0.2",
+    "formik": ">= 2.1.4",
+    "fp-ts": ">= 2.8.3",
+    "io-ts": ">= 2.2.4",
+    "io-ts-types": ">= 0.5.7",
+    "monocle-ts": ">= 2.2.0",
+    "newtype-ts": ">= 0.3.4"
+  },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
