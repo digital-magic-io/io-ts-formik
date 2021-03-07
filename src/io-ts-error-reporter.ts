@@ -16,9 +16,9 @@ import { RefinementParams, RefinementParamsKey } from './index'
 
 const pathSeparator = '.'
 
-const isUnionType = ({ type }: t.ContextEntry) => type instanceof t.UnionType
+const isUnionType = ({ type }: t.ContextEntry): boolean => type instanceof t.UnionType
 
-const keyPath = (ctx: t.Context) =>
+const keyPath = (ctx: t.Context): string =>
   ctx
     .map((c) => c.key)
     .filter((v) => isNotEmptyString(v) && v !== RefinementParamsKey)
@@ -26,11 +26,13 @@ const keyPath = (ctx: t.Context) =>
 
 // TODO: Refactor: why can't just use: not(A.takeLeftWhile) - result differs (have to resolve why)
 export const takeUntil = <A = unknown>(predicate: Predicate<A>) => (as: ReadonlyArray<A>): ReadonlyArray<A> => {
-  // tslint:disable-next-line:readonly-array
+  // eslint-disable-next-line functional/prefer-readonly-type
   const init: Array<A> = []
 
   // TODO: Functional approach would be more appreciated
+  // eslint-disable-next-line functional/no-loop-statement,functional/no-let
   for (let i = 0; i < as.length; i++) {
+    // eslint-disable-next-line functional/immutable-data
     init[i] = as[i]
     if (predicate(as[i])) {
       return init
@@ -56,10 +58,12 @@ export type ErrorParams = {
 
 const groupByKey = NEA.groupBy((error: t.ValidationError) => pipe(error.context, takeUntil(isUnionType), keyPath))
 
-const getValidationContext = (validation: t.ValidationError) => validation.context as ReadonlyArray<t.ContextEntry>
+const getValidationContext = (validation: t.ValidationError): ReadonlyArray<t.ContextEntry> => validation.context
 
 // The actual error is last in context
-const getErrorFromCtx = (validation: t.ValidationError) => A.last(getValidationContext(validation))
+const getErrorFromCtx = (validation: t.ValidationError): O.Option<t.ContextEntry> =>
+  A.last(getValidationContext(validation))
+
 /*
 const errorMessageSimple = (expectedType: string, path: string, error: t.ValidationError) =>
   `Expecting: ${expectedType} at path: "${path}", but instead got: ${JSON.stringify(error.value)} (${error.message})`
@@ -85,14 +89,14 @@ const ErrorParams = {
   }
 }
 
-const findExpectedType = (ctx: ReadonlyArray<t.ContextEntry>) =>
+const findExpectedType = (ctx: ReadonlyArray<t.ContextEntry>): O.Option<t.ContextEntry> =>
   pipe(
     ctx,
     A.findIndex(isUnionType),
     O.chain((n) => A.lookup(n + 1, ctx))
   )
 
-const formatValidationErrorOfUnion = (path: string, errors: ErrorsArray) => {
+const formatValidationErrorOfUnion = (path: string, errors: ErrorsArray): O.Option<ErrorParams> => {
   // TODO: Duplications are created here (see test with nested structures)
   const expectedTypes = pipe(
     errors,
@@ -113,7 +117,7 @@ const formatValidationErrorOfUnion = (path: string, errors: ErrorsArray) => {
     : O.none
 }
 
-const formatValidationCommonError = (path: string, error: t.ValidationError) =>
+const formatValidationCommonError = (path: string, error: t.ValidationError): O.Option<ErrorParams> =>
   pipe(
     error,
     getErrorFromCtx,
@@ -122,19 +126,19 @@ const formatValidationCommonError = (path: string, error: t.ValidationError) =>
     )
   )
 
-const format = (path: string, errors: ErrorsArray) =>
+const format = (path: string, errors: ErrorsArray): O.Option<ErrorParams> =>
   NEA.tail(errors).length > 0
     ? formatValidationErrorOfUnion(path, errors)
     : formatValidationCommonError(path, NEA.head(errors))
 
-export const formatValidationErrors = (errors: t.Errors) =>
+export const formatValidationErrors = (errors: t.Errors): ReadonlyArray<ErrorParams> =>
   pipe(
     errors,
     groupByKey,
     R.mapWithIndex(format),
     R.compact,
     R.toArray,
-    A.map(([_key, error]) => error)
+    A.map(([, error]) => error)
   )
 
 export type ErrorFormatter = (params: ErrorParams) => string
@@ -149,6 +153,7 @@ export const errorWithParamsReporter: ErrorWithParamsReporter = {
     )
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions,functional/prefer-type-literal
 export interface FormikErrorReporter<T> extends Reporter<FormikErrors<T>> {
   readonly report: (validation: t.Validation<T>, errorFormatter?: ErrorFormatter) => FormikErrors<T>
 }
@@ -156,7 +161,7 @@ export interface FormikErrorReporter<T> extends Reporter<FormikErrors<T>> {
 const defaultErrorFormatter: ErrorFormatter = (params) =>
   `Expecting one of: [${params.expectedTypes.join(', ')}], at path: "${params.path}", but instead got: ${JSON.stringify(
     params.value
-  )} (${params.errorMessage})`
+  )} (${params.errorMessage ?? '-no error message-'})`
 
 export const formatErrorMessages = (formatter: ErrorFormatter = defaultErrorFormatter) => (
   errors: ReadonlyArray<ErrorParams>
@@ -171,6 +176,7 @@ export const formatErrorMessages = (formatter: ErrorFormatter = defaultErrorForm
     })
   )
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 const formikMapper = (path: string, message: string): object => {
   const levels = path.split(pathSeparator) as NEA.NonEmptyArray<string>
 
@@ -188,13 +194,13 @@ const formikMapper = (path: string, message: string): object => {
 
 export const buildFormikErrors = <T>(errors: ReadonlyArray<ErrorParams>): FormikErrors<T> => {
   const foldErrors = fold(R.getMonoid(getDeepObjectSemigroup()))
-  return foldErrors(errors.map((e) => formikMapper(e.path, e.errorMessage!))) as FormikErrors<T>
+  return foldErrors(errors.map((e) => formikMapper(e.path, e.errorMessage ?? '-no error-'))) as FormikErrors<T>
 }
 
 export const zipFormikErrors = <T>(errors: ReadonlyArray<ErrorParams>): FormikErrors<T> =>
   R.fromFoldableMap(getLastSemigroup<string>(), A.readonlyArray)(errors, (e: ErrorParams) => [
     e.path,
-    e.errorMessage!
+    e.errorMessage ?? '-no error-'
   ]) as FormikErrors<T>
 
 export function formikErrorReporter<T>(): FormikErrorReporter<T> {

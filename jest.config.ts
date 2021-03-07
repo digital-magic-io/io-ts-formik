@@ -1,15 +1,10 @@
-module.exports = {
+import type { Config } from '@jest/types'
+
+const config: Config.InitialOptions = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   collectCoverage: true,
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    'src/**/*.tsx',
-    '!src/index.ts',
-  ],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest'
-  },
+  collectCoverageFrom: ['src/**/*.ts'],
   testRegex: 'test',
   moduleFileExtensions: ['ts', 'js'],
   coverageThreshold: {
@@ -19,5 +14,14 @@ module.exports = {
       lines: 100,
       statements: 100
     }
+  },
+  globals: {
+    'ts-jest': {
+      babelConfig: {
+        presets: ['@babel/preset-env']
+      }
+    }
   }
 }
+
+export default config

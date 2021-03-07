@@ -22,7 +22,7 @@ export type RefinementParam = 'required' | 'min' | 'max' | 'type' | 'past' | 'fu
 export type RefinementParams = Partial<Record<RefinementParam, string | number | boolean>>
 // type ValidationErrors<T> = Partial<Record<keyof T, string>>
 
-export type KeysOfType<T, TProp> = { [P in keyof T]: T[P] extends TProp ? P : never }[keyof T]
+export type KeysOfType<T, TProp> = { readonly [P in keyof T]: T[P] extends TProp ? P : never }[keyof T]
 
 /*
 function objectMap<T>(object: T, mapFn) {
@@ -40,12 +40,14 @@ export const withRequired = <C extends Optional<t.Any>>(codec: C): C =>
     if (E.isLeft(e)) {
       return e
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const a = e.right
     return isNotEmptyString(a) ? t.success(a) : t.failure(a, ctx)
   })
 
 export const withRequiredFields = <P extends t.Props>(
   codec: t.TypeC<P>,
+  // eslint-disable-next-line functional/functional-parameters
   ...reqFields: ReadonlyArray<KeysOfType<P, Optional<t.Any>>>
 ): t.TypeC<P> =>
   t.type<P>(
@@ -102,6 +104,7 @@ export const brandWithParams = <C extends t.Any, N extends string, B extends { r
       if (E.isLeft(e)) {
         return e
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const a = e.right
       return predicate(a) ? t.success(a) : t.failure(a, ctx)
     },
@@ -111,10 +114,12 @@ export const brandWithParams = <C extends t.Any, N extends string, B extends { r
   )
 }
 
-export const brandedString = (name: string, min: number, max: number, type: string = 'string') =>
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const brandedString = (name: string, min: number, max: number, type = 'string') =>
   brandWithParams(t.string, stringLengthRefinement(min, max), { required: true, min, max, type }, name)
 
-export const brandedStringWithPattern = (name: string, pattern: RegExp, type: string = 'string') =>
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const brandedStringWithPattern = (name: string, pattern: RegExp, type = 'string') =>
   brandWithParams(t.string, regexRefinement(pattern), { required: true, type }, name)
 
 export enum DateBoundary {
@@ -134,6 +139,7 @@ const dateBoundaryToRefinement = (dateBoundary?: DateBoundary): DateRefinement<n
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const brandedDate = (name: string, dateBoundary?: DateBoundary) => {
   const refinement = dateBoundaryToRefinement(dateBoundary)
   const future = dateBoundary === DateBoundary.Future

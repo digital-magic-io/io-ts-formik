@@ -4,7 +4,6 @@ import { isLeft, isRight, left } from 'fp-ts/lib/Either'
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString'
 import { ErrorFormatter, errorWithParamsReporter, formikErrorReporter } from '../src/io-ts-error-reporter'
 import { hasValue, isEmptyString } from '@digital-magic/ts-common-utils/lib/type'
-import { getOrElse } from '@digital-magic/ts-common-utils/lib/nullable-utils'
 import { optional } from '@digital-magic/io-ts-extensions'
 import {
   brandedDate,
@@ -24,7 +23,7 @@ const PhonePrefix = brandedString('PhonePrefix', 2, 5, 'phone prefix')
 const PhoneNumber = brandedString('PhoneNumber', 2, 10, 'phone number')
 const PastLocalTime = brandedDate('DateInPast', DateBoundary.Past)
 const AddressLine = brandedString('AddressLine', 2, 10, 'address')
-const EmailAddress = brandedStringWithPattern('EmailAddress', /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$/, 'email')
+const EmailAddress = brandedStringWithPattern('EmailAddress', /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,4})+$/, 'email')
 
 const Contacts = t.type({
   emails: t.array(EmailAddress),
@@ -45,9 +44,11 @@ const stringFormatter: ErrorFormatter = (params) => {
   if (params.params?.min || params.params?.max) {
     const min = params.params.min ? params.params.min : 0
     const max = params.params.max ? params.params.max : MAX_STRING_LENGTH
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
     return `This field must be of length between ${min} and ${max}`
   }
-  const type = getOrElse(params.params?.type, () => 'string')
+  const type = params.params?.type ?? 'string'
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   return `Incorrect ${type} format!`
 }
 
@@ -58,7 +59,8 @@ const dateFormatter: ErrorFormatter = (params) => {
   if (params.params?.past === true) {
     return 'Date must be in past'
   }
-  const type = getOrElse(params.params?.type, () => 'Date')
+  const type = params.params?.type ?? 'Date'
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
   return `Incorrect ${type} format!`
 }
 
@@ -86,7 +88,7 @@ const expectValidationError = (result: t.Validation<unknown>): t.Errors => {
 
 const expectValidationSuccess: <T>(result: t.Validation<T>) => T = (result) => {
   if (!isRight(result)) {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log(errorWithParamsReporter.report(result))
     fail('Success decoding was expected, got: Error')
   }
@@ -105,14 +107,14 @@ const expectErrorContext = (
   if (hasValue(params)) {
     expect(params.actual).toStrictEqual(expectedParams)
   } else {
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log(c)
     fail(
       'Expected context param not found: ' +
         paramName +
         ', available params: ' +
         // tslint:disable-next-line:quotemark
-        c.map((v) => "'" + v.key + "'").join(', ')
+        c.map((v) => `'${v.key}'`).join(', ')
     )
   }
 }
@@ -272,7 +274,7 @@ test('withRequired combinator must correctly update Decoder with simple nested t
   const decoded = expectValidationError(decoder.decode({ content: { text: '' } }))
 
   // TODO: Resolve problem with expectedTypes in console output
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log(errorWithParamsReporter.report(left(decoded)))
 
   const reqNestedErrors = formikErrorReporter<typeof decoder>().report(left(decoded), errorFormatter)
@@ -379,7 +381,7 @@ test('withRequired combinator must correctly update Decoder with complex nested 
     expect(reqNestedDecoded.length).toBe(6)
 
     // TODO: Resolve problem with expectedTypes in console output
-    // tslint:disable-next-line:no-console
+    // eslint-disable-next-line no-console
     console.log(errorWithParamsReporter.report(left(reqNestedDecoded)))
 
     const reqNestedErrors = formikErrorReporter<typeof reqNestedDecoder>().report(
